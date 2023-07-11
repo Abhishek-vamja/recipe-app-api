@@ -11,12 +11,18 @@ from rest_framework.test import APIClient
 from recipe.serializers import IngredientSerializer
 from core.models import Ingredient
 
+
 INGREDIENT_URL = reverse('recipe:ingredient-list')
 
+
+def detail_url(ingredient_id):
+    """Create and return detail url"""
+    return reverse('recipe:ingredient-detail',args=[ingredient_id])
 
 def create_user(email='user@gmail.com',password='pass123'):
     """Create and return new user."""
     return get_user_model().objects.create_user(email=email,password=password)
+
 
 class PublicIngredientAPI(TestCase):
     """Test unauthenticated API request."""
@@ -61,6 +67,31 @@ class PrivateIngredientAPI(TestCase):
         res = self.client.get(INGREDIENT_URL)
 
         self.assertEqual(res.status_code,status.HTTP_200_OK)
-        self.assertEqual(len(ingredient.data),1)
+        self.assertEqual(len(res.data),1)
         self.assertEqual(res.data[0]['name'],ingredient.name)
         self.assertEqual(res.data[0]['id'],ingredient.id)
+    
+    def test_update_ingredients(self):
+        """Test updating a ingredients."""
+        ingredient = Ingredient.objects.create(user=self.user,name='Tomato')
+
+        payload = {'name':'Onion'}
+        url = detail_url(ingredient.id)
+        res = self.client.patch(url,payload)
+
+        self.assertEqual(res.status_code,status.HTTP_200_OK)
+        ingredient.refresh_from_db()
+
+        self.assertEqual(ingredient.name,payload['name'])
+    
+    def test_delete_ingredients(self):
+        """Test deleting a ingredients."""
+        ingredient = Ingredient.objects.create(user=self.user,name='Paper')
+
+        url = detail_url(ingredient.id)
+
+        res = self.client.delete(url)
+        self.assertEqual(res.status_code,status.HTTP_204_NO_CONTENT)
+
+        ingredients = Ingredient.objects.filter(user=self.user)
+        self.assertFalse(ingredients.exists())

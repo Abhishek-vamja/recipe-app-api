@@ -2,11 +2,12 @@
 from rest_framework import viewsets , mixins
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from core.models import Recipe, Tag , Ingredient
 from recipe.serializers import (
     RecipeSerializer , RecipeDetailSerializer , 
-    TagSerializer, IngredientSerializer)
+    TagSerializer, IngredientSerializer,RecipeReadSerializer)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -50,7 +51,9 @@ class TagViewSet(
 
 
 class IngredientViewSet(
+    mixins.DestroyModelMixin,
     mixins.ListModelMixin,
+    mixins.UpdateModelMixin,
     viewsets.GenericViewSet):
     """Manage ingredients in the database."""
     serializer_class = IngredientSerializer
