@@ -2,3 +2,4 @@ django
 djangorestframework
 psycopg2
 drf-spectacular
+pillow
